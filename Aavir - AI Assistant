@@ -17,9 +17,8 @@ from PIL import ImageGrab
 
 keyboard = Controller()
 
-# ==============================
 # TEXT TO SPEECH
-# ==============================
+
 engine = pyttsx3.init()
 
 def speak(text):
@@ -27,9 +26,8 @@ def speak(text):
     engine.say(text)
     engine.runAndWait()
 
-# ==============================
 # SPEECH RECOGNITION
-# ==============================
+
 recognizer = sr.Recognizer()
 mic = sr.Microphone()
 
@@ -47,9 +45,9 @@ def listen():
     except:
         return ""
 
-# ==============================
+
 # TIME & DATE
-# ==============================
+
 def get_time_date(command):
 
     now = datetime.datetime.now()
@@ -60,18 +58,18 @@ def get_time_date(command):
     if "date" in command or "today" in command:
         return "Today is " + now.strftime("%A, %d %B %Y")
 
-# ==============================
+
 # OPEN GMAIL
-# ==============================
+
 def open_website(command):
 
     if "gmail" in command:
         webbrowser.open("https://mail.google.com", new=2)
         return "Opening Gmail."
 
-# ==============================
+
 # PLAY YOUTUBE
-# ==============================
+
 from urllib.parse import quote
 
 def play_youtube(query):
@@ -88,9 +86,9 @@ def play_youtube(query):
 
     return f"Playing {query} on YouTube"
 
-# ==============================
+
 # WIKIPEDIA SEARCH
-# ==============================
+
 def search_wikipedia(query):
 
     try:
@@ -98,9 +96,8 @@ def search_wikipedia(query):
     except:
         return None
 
-# ==============================
 # GOOGLE SEARCH
-# ==============================
+
 def search_google(query):
 
     try:
@@ -111,9 +108,9 @@ def search_google(query):
     except:
         return "Sorry I couldn't search Google."
 
-# ==============================
+
 # OPEN APPLICATION
-# ==============================
+
 def open_application(command):
     try:
         if "chrome" in command:
@@ -128,9 +125,9 @@ def open_application(command):
         print("App open error:", e)
         return "Sorry, I couldn't open the application."
     
-# ==============================
+
 # TO DO LIST
-# ==============================
+
 def manage_tasks(command):
 
     file="tasks.txt"
@@ -163,9 +160,9 @@ def manage_tasks(command):
         except:
             return "No tasks yet"
 
-# ==============================
+
 # SYSTEM CONTROL
-# ==============================
+
 def system_control(command):
 
     if "shutdown" in command:
@@ -180,9 +177,9 @@ def system_control(command):
         subprocess.run(["osascript","-e",'tell application "System Events" to keystroke "q" using {control down, command down}'])
         return "Locking screen"
 
-# ==============================
+
 # BATTERY STATUS
-# ==============================
+
 def battery_status():
 
     try:
@@ -196,9 +193,9 @@ def battery_status():
     except:
         return "Cannot read battery"
 
-# ==============================
+
 # NEWS HEADLINES
-# ==============================
+
 def get_news():
 
     try:
@@ -215,9 +212,9 @@ def get_news():
     except:
         return "Cannot fetch news"
 
-# ==============================
+
 # VOICE TYPING
-# ==============================
+
 def voice_typing():
 
     speak("Start speaking")
@@ -232,9 +229,9 @@ def voice_typing():
 
         keyboard.type(text+" ")
 
-# ==============================
+
 # FILE SEARCH
-# ==============================
+
 def find_file(query):
 
     try:
@@ -256,9 +253,9 @@ def find_file(query):
     except:
         return "File search error"
 
-# ==============================
+
 # SCREEN READER
-# ==============================
+
 def read_screen():
 
     img=ImageGrab.grab()
@@ -270,9 +267,9 @@ def read_screen():
     else:
         speak("No readable text found")
 
-# ==============================
+
 # MEETING NOTES
-# ==============================
+
 def meeting_notes():
 
     speak("Recording meeting notes")
@@ -295,9 +292,9 @@ def meeting_notes():
 
     speak("Meeting notes saved")
 
-# ==============================
+
 # MAIN LOOP
-# ==============================
+
 print("[AAVIR] Assistant started")
 speak("Aavir is online")
 
