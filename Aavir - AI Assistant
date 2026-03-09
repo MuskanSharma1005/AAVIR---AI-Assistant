@@ -1,0 +1,373 @@
+import speech_recognition as sr
+import pyttsx3
+import wikipedia
+from googlesearch import search
+import webbrowser
+import requests
+import time
+import subprocess
+import datetime
+import feedparser
+from pynput.keyboard import Controller
+import pytesseract
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = "/opt/homebrew/bin/tesseract"
+from PIL import ImageGrab
+
+
+keyboard = Controller()
+
+# ==============================
+# TEXT TO SPEECH
+# ==============================
+engine = pyttsx3.init()
+
+def speak(text):
+    print("[AAVIR] TTS:", text)
+    engine.say(text)
+    engine.runAndWait()
+
+# ==============================
+# SPEECH RECOGNITION
+# ==============================
+recognizer = sr.Recognizer()
+mic = sr.Microphone()
+
+def listen():
+    with mic as source:
+        recognizer.adjust_for_ambient_noise(source)
+        print("[AAVIR] Listening...")
+        audio = recognizer.listen(source)
+
+    try:
+        text = recognizer.recognize_google(audio)
+        print("[AAVIR] Heard:", text)
+        return text.lower()
+
+    except:
+        return ""
+
+# ==============================
+# TIME & DATE
+# ==============================
+def get_time_date(command):
+
+    now = datetime.datetime.now()
+
+    if "time" in command:
+        return "The current time is " + now.strftime("%I:%M %p")
+
+    if "date" in command or "today" in command:
+        return "Today is " + now.strftime("%A, %d %B %Y")
+
+# ==============================
+# OPEN GMAIL
+# ==============================
+def open_website(command):
+
+    if "gmail" in command:
+        webbrowser.open("https://mail.google.com", new=2)
+        return "Opening Gmail."
+
+# ==============================
+# PLAY YOUTUBE
+# ==============================
+from urllib.parse import quote
+
+def play_youtube(query):
+
+    query = query.replace("play", "")
+    query = query.replace("youtube", "")
+    query = query.strip()
+
+    encoded = quote(query)
+
+    url = f"https://www.youtube.com/results?search_query={encoded}"
+
+    webbrowser.open(url,new=2)
+
+    return f"Playing {query} on YouTube"
+
+# ==============================
+# WIKIPEDIA SEARCH
+# ==============================
+def search_wikipedia(query):
+
+    try:
+        return wikipedia.summary(query, sentences=2)
+    except:
+        return None
+
+# ==============================
+# GOOGLE SEARCH
+# ==============================
+def search_google(query):
+
+    try:
+        results = list(search(query, num_results=1))
+        if results:
+            webbrowser.open(results[0])
+            return "Opening Google result."
+    except:
+        return "Sorry I couldn't search Google."
+
+# ==============================
+# OPEN APPLICATION
+# ==============================
+def open_application(command):
+    try:
+        if "chrome" in command:
+            subprocess.run(["open","-a","Google Chrome"])
+            return "Opening Chrome"
+
+        elif "youtube" in command:
+            # Open YouTube in default browser
+            webbrowser.open("https://www.youtube.com", new=2)
+            return "Opening YouTube"
+    except Exception as e:
+        print("App open error:", e)
+        return "Sorry, I couldn't open the application."
+    
+# ==============================
+# TO DO LIST
+# ==============================
+def manage_tasks(command):
+
+    file="tasks.txt"
+
+    if "add task" in command:
+
+        task=command.replace("add task","")
+
+        with open(file,"a") as f:
+            f.write(task+"\n")
+
+        return "Task added"
+
+    if "show tasks" in command:
+
+        try:
+            with open(file) as f:
+                tasks=f.readlines()
+
+            if not tasks:
+                return "No tasks found"
+
+            response="Your tasks are "
+
+            for t in tasks:
+                response+=t.strip()+", "
+
+            return response
+
+        except:
+            return "No tasks yet"
+
+# ==============================
+# SYSTEM CONTROL
+# ==============================
+def system_control(command):
+
+    if "shutdown" in command:
+        subprocess.run(["osascript","-e",'tell app "System Events" to shut down'])
+        return "Shutting down"
+
+    if "restart" in command:
+        subprocess.run(["osascript","-e",'tell app "System Events" to restart'])
+        return "Restarting"
+
+    if "lock screen" in command:
+        subprocess.run(["osascript","-e",'tell application "System Events" to keystroke "q" using {control down, command down}'])
+        return "Locking screen"
+
+# ==============================
+# BATTERY STATUS
+# ==============================
+def battery_status():
+
+    try:
+
+        output=subprocess.check_output(["pmset","-g","batt"]).decode()
+
+        percent=output.split("\t")[1].split(";")[0]
+
+        return "Battery level is "+percent
+
+    except:
+        return "Cannot read battery"
+
+# ==============================
+# NEWS HEADLINES
+# ==============================
+def get_news():
+
+    try:
+
+        feed=feedparser.parse("https://news.google.com/rss")
+
+        news="Top headlines "
+
+        for i in range(5):
+            news+=feed.entries[i].title+". "
+
+        return news
+
+    except:
+        return "Cannot fetch news"
+
+# ==============================
+# VOICE TYPING
+# ==============================
+def voice_typing():
+
+    speak("Start speaking")
+
+    while True:
+
+        text=listen()
+
+        if "stop typing" in text:
+            speak("Stopping typing")
+            break
+
+        keyboard.type(text+" ")
+
+# ==============================
+# FILE SEARCH
+# ==============================
+def find_file(query):
+
+    try:
+
+        result=subprocess.check_output(["mdfind",query],text=True)
+
+        files=result.split("\n")[:5]
+
+        if files[0]=="":
+            return "No files found"
+
+        response="I found "
+
+        for f in files:
+            response+=f.split("/")[-1]+", "
+
+        return response
+
+    except:
+        return "File search error"
+
+# ==============================
+# SCREEN READER
+# ==============================
+def read_screen():
+
+    img=ImageGrab.grab()
+
+    text=pytesseract.image_to_string(img)
+
+    if text.strip():
+        speak(text[:400])
+    else:
+        speak("No readable text found")
+
+# ==============================
+# MEETING NOTES
+# ==============================
+def meeting_notes():
+
+    speak("Recording meeting notes")
+
+    notes=[]
+
+    while True:
+
+        text=listen()
+
+        if "stop recording" in text:
+            break
+
+        notes.append(text)
+
+    with open("meeting_notes.txt","a") as f:
+
+        for n in notes:
+            f.write(n+"\n")
+
+    speak("Meeting notes saved")
+
+# ==============================
+# MAIN LOOP
+# ==============================
+print("[AAVIR] Assistant started")
+speak("Aavir is online")
+
+while True:
+
+    text=listen()
+
+    if text=="":
+        continue
+
+    if "exit" in text or "bye" in text:
+        speak("Goodbye")
+        break
+
+    if "play" in text:
+        speak(play_youtube(text))
+        continue
+
+    if "open" in text:
+        result=open_application(text)
+        if result:
+            speak(result)
+            continue
+
+    if "time" in text or "date" in text:
+        speak(get_time_date(text))
+        continue
+
+    if "gmail" in text:
+        speak(open_website(text))
+        continue
+
+    if "battery" in text:
+        speak(battery_status())
+        continue
+
+    if "news" in text:
+        speak(get_news())
+        continue
+
+    if "add task" in text or "show tasks" in text:
+        speak(manage_tasks(text))
+        continue
+
+    if "shutdown" in text or "restart" in text or "lock screen" in text:
+        speak(system_control(text))
+        continue
+
+    if "start voice typing" in text:
+        voice_typing()
+        continue
+
+    if "find" in text:
+        speak(find_file(text.replace("find","")))
+        continue
+
+    if "read screen" in text:
+        read_screen()
+        continue
+
+    if "start meeting notes" in text:
+        meeting_notes()
+        continue
+
+
+    answer=search_wikipedia(text)
+
+    if answer:
+        speak(answer)
+    else:
+        speak(search_google(text))
+
+    time.sleep(1)
